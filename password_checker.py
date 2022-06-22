@@ -1,6 +1,6 @@
 """
-Instructions: use 'python password/ checker.py <password>' or
-'python password/ checker.py' to enter your password.
+Instructions: use 'python password_checker.py <password>' or
+'python password_checker.py' to enter your password.
 
 The password u enter will not be sent to the api only first 5 characters
 in the hashed sting is sent to the api.
