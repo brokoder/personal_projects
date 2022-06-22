@@ -26,7 +26,7 @@ class Password:
 
 class GetLeakedHashes:
     def __init__(self, password_obj: Password) -> None:
-        self.query_char, self.tail =  password_obj.get_query_strings()
+        self.query_char, self.tail = password_obj.get_query_strings()
         self.password_used_count: int = 0
 
     def call_api_for_password(self):
@@ -40,11 +40,14 @@ class GetLeakedHashes:
 
     def check_if_password_is_okey(self):
         api_response = self.call_api_for_password()
-        hashes = (line.split(":") for line in api_response.text.splitlines())
-        for tail, count in hashes:
-            if tail == self.tail:
-                self.password_used_count = count
-                return
+        hashes = {
+            line.split(":")[0]: line.split(":")[1]
+            for line in api_response.text.splitlines()
+        }
+        if self.tail in hashes:
+            self.password_used_count = hashes[self.tail]
+            return
+
 
 def main(password):
     password_obj = Password(password)
@@ -55,8 +58,8 @@ def main(password):
     else:
         print("Password not found in database. You are good to go!")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     args = sys.argv
     password = args[1] if len(args) > 1 else input("Enter password:  ")
     sys.exit(main(password))
-    

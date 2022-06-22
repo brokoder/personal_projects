@@ -69,11 +69,14 @@ async def main(passwords):
     )
     compromised_password_dict = dict(compromised_password_list)
     for password in passwords:
-        hashes = (line.split(":") for line in compromised_password_dict[password])
-        for tail, count in hashes:
-            if tail == format_passwords[password][5:]:
-                print(f"The password {password} is exposed {count} times")
-                break
+        hashes = {
+            line.split(":")[0]: line.split(":")[1]
+            for line in compromised_password_dict[password]
+        }
+        if format_passwords[password][5:] in hashes:
+            print(
+                f"The password {password} is exposed {hashes[format_passwords[password][5:]]} times"
+            )
 
 
 if __name__ == "__main__":
