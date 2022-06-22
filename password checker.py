@@ -25,9 +25,8 @@ class Password:
 
 
 class GetLeakedHashes:
-    def __init__(self, query_char: str, tail: str) -> None:
-        self.query_char = query_char
-        self.tail = tail
+    def __init__(self, password_obj: Password) -> None:
+        self.query_char, self.tail =  password_obj.get_query_strings()
         self.password_used_count: int = 0
 
     def call_api_for_password(self):
@@ -48,9 +47,8 @@ class GetLeakedHashes:
                 return
 
 def main(password):
-    pw = Password(password)
-    query_char, tail = pw.get_query_strings()
-    leaked_hashes = GetLeakedHashes(query_char, tail)
+    password_obj = Password(password)
+    leaked_hashes = GetLeakedHashes(password_obj)
     leaked_hashes.check_if_password_is_okey()
     if leaked_hashes.password_used_count:
         print(f"This password was used {leaked_hashes.password_used_count} times")
