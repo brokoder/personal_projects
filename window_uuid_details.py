@@ -1,19 +1,23 @@
 """
-This is a web scraper script using python to extract details of Microsoft 
+This is a web scraper script using python to extract details of Microsoft
 Update Catalog for getting the relevant details of a windows update or patch.
-With this script it is also possible to download the patch file to a location 
+With this script it is also possible to download the patch file to a location
 
 """
-import requests
 import argparse
+import requests
 from bs4 import BeautifulSoup
 
 BASE_SITE = "https://www.catalog.update.microsoft.com/ScopedViewInline.aspx"
 
 
 def start():
+    """
+    To be executed at the start
+    """
     parser = argparse.ArgumentParser(
-        description="This script is used for getting details about a patch or update from windows catalogue"
+        description="This script is used for getting details about a patch\
+            or update from windows catalogue"
     )
     parser.add_argument(
         "-u",
@@ -39,6 +43,11 @@ def start():
 
 
 class Update:
+    """
+    Class for update behaviors
+    """
+    # pylint: disable=too-many-instance-attributes
+    # Eight is reasonable in this case.
     def __init__(self, update_id: str) -> None:
         self.update_id: str = update_id
         self.title: str = None
@@ -52,6 +61,9 @@ class Update:
         self.get_update_download_link()
 
     def get_update_details(self):
+        """
+        For scrapping the details for update
+        """
         response = requests.get(BASE_SITE, params={"updateid": self.update_id})
         html_doc = response.content
         soup = BeautifulSoup(html_doc, "lxml")
@@ -75,8 +87,12 @@ class Update:
         ).text.strip()
 
     def get_update_download_link(self):
+        """
+        For scrapping the download url for update
+        """
         post_url = (
-            'https://www.catalog.update.microsoft.com/DownloadDialog.aspx?updateIDs=[{"size":0,"languages":"","uidInfo":"'
+            'https://www.catalog.update.microsoft.com/DownloadDialog.aspx?\
+                updateIDs=[{"size":0,"languages":"","uidInfo":"'
             + self.update_id
             + '","updateID":"'
             + self.update_id
@@ -94,6 +110,9 @@ class Update:
 
 
 def download_update_file(download_url, download_path="", file_name=None):
+    """
+    For downloading the file to a desired location.
+    """
     res = requests.get(download_url)
     if not file_name:
         file_name = download_url[download_url.rfind("/") + 1 :]
@@ -107,8 +126,8 @@ def download_update_file(download_url, download_path="", file_name=None):
 
 
 if __name__ == "__main__":
-    args = start()
-    update_obj = Update(args.update_id)
+    arguments = start()
+    update_obj = Update(arguments.update_id)
     print(update_obj.__dict__)
-    if args.download:
-        download_update_file(update_obj.download_url, args.path, args.file_name)
+    if arguments.download:
+        download_update_file(update_obj.download_url, arguments.path, arguments.file_name)
