@@ -1,4 +1,9 @@
 """
+This is a script used for checking if the password used is a common password.
+Using such a password doesn't mean your account can be hacked because
+password salting is a commonly used standard in most of the services but it
+is not advisable.
+
 Instructions: use 'python password_checker.py <password>' or
 'python password_checker.py' to enter your password.
 
