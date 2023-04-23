@@ -65,6 +65,7 @@ class Py2048:
     
     def create_new_board(self):
         self.board_df = pd.DataFrame(0, index=range(4), columns=range(4))
+        self.previous_df = self.board_df.copy()
         self.score = 0
         self.score_increase = 0
         self.over = False
@@ -123,7 +124,10 @@ class Py2048:
             cell_values = self.board_df[col].to_list()
             self.board_df[col], score_increase = self.turn_logic(cell_values)
             self.score_increase += score_increase
+        if self.board_df.equals(self.previous_df):# no change 
+            return self.check_if_no_moves_present(self.board_df)
         self.score += self.score_increase
+        return True
 
     def turn_down(self):
         self.score_increase = 0
@@ -134,7 +138,10 @@ class Py2048:
             cell_values.reverse()
             self.board_df[col] = cell_values
             self.score_increase += score_increase
+        if self.board_df.equals(self.previous_df):# no change 
+            return self.check_if_no_moves_present(self.board_df)
         self.score += self.score_increase
+        return True
 
     def turn_left(self):
         self.score_increase = 0
@@ -142,7 +149,10 @@ class Py2048:
             cell_values = val.to_list()
             self.board_df.loc[row], score_increase  = self.turn_logic(cell_values)
             self.score_increase += score_increase
+        if self.board_df.equals(self.previous_df):# no change 
+            return self.check_if_no_moves_present(self.board_df)
         self.score += self.score_increase
+        return True
 
     def turn_right(self):
         self.score_increase = 0
@@ -153,7 +163,10 @@ class Py2048:
             cell_values.reverse()
             self.board_df.loc[row] = cell_values
             self.score_increase += score_increase
+        if self.board_df.equals(self.previous_df):# no change 
+            return self.check_if_no_moves_present(self.board_df)
         self.score += self.score_increase
+        return True
 
     @staticmethod
     def get_zero_indexes(board_df:pd.DataFrame):
@@ -164,13 +177,33 @@ class Py2048:
                     _index_list.append((col,row))
         return _index_list
 
+    @staticmethod
+    def check_if_no_moves_present(board_df:pd.DataFrame):
+        for col in board_df:
+            for row, val in board_df[col].items():
+                if col > 0: #left
+                    if board_df[col][row] == board_df[col-1][row]:
+                        return False
+                if col < 3: #right
+                    if board_df[col][row] == board_df[col+1][row]:
+                        return False
+                if row > 0: #up
+                    if board_df[col][row] == board_df[col][row-1]:
+                        return False
+                if row < 3: #down
+                    if board_df[col][row] == board_df[col][row+1]:
+                        return False
+        return True
+
     def set_new_pieces(self, count=1) ->bool:
         index_list = self.get_zero_indexes(self.board_df)
         if not index_list:
-            return True
+            return False
         for _ in range(count):
             col,row = random.choice(index_list)
             self.board_df[col][row] = 4 if random.randint(1, 10) == 10 else 2
+        if not self.get_zero_indexes(self.board_df):
+            return self.check_if_no_moves_present(self.board_df)
         return False
 
 def main():
@@ -190,24 +223,28 @@ def main():
                 game.run = False
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_r:
-                    game.board_df = _previous_df
+                    game.board_df = game.previous_df
                     game.score = game.score - game.score_increase
                 if event.key == pygame.K_w:
-                    _previous_df = game.board_df.copy()
-                    game.turn_up()
-                    game.over = game.set_new_pieces()
+                    game.previous_df = game.board_df.copy()
+                    is_change = game.turn_up()
+                    if is_change:
+                        game.over = game.set_new_pieces()
                 elif event.key == pygame.K_s:
-                    _previous_df = game.board_df.copy()
-                    game.turn_down()
-                    game.over = game.set_new_pieces()
+                    game.previous_df = game.board_df.copy()
+                    is_change = game.turn_down()
+                    if is_change:
+                        game.over = game.set_new_pieces()
                 elif event.key == pygame.K_a:
-                    _previous_df = game.board_df.copy()
-                    game.turn_left()
-                    game.over = game.set_new_pieces()
+                    game.previous_df = game.board_df.copy()
+                    is_change = game.turn_left()
+                    if is_change:
+                        game.over = game.set_new_pieces()
                 elif event.key == pygame.K_d:
-                    _previous_df = game.board_df.copy()
-                    game.turn_right()
-                    game.over = game.set_new_pieces()
+                    game.previous_df = game.board_df.copy()
+                    is_change = game.turn_right()
+                    if is_change:
+                        game.over = game.set_new_pieces()
                 elif event.key == pygame.K_ESCAPE:
                     game.over = True
                 if game.over:
@@ -216,6 +253,10 @@ def main():
                         game.create_new_board()
                         game.draw_board()
                         game_start = True
+                    if event.key == pygame.K_r:
+                        game.board_df = game.previous_df
+                        game.score = game.score - game.score_increase
+                        game.over = False
         if not game.over:
             game.draw_pieces()
         if game.score > game.high_score:
